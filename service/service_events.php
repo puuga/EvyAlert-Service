@@ -16,6 +16,8 @@ if ( $_SERVER["REQUEST_METHOD"] == "GET" ) {
     $events = getNearBy($conn, $lat, $lng, 20);
   } elseif ( $_GET["filter"] === "1" ) {
     $events = getNearBy($conn, $lat, $lng, 50);
+  } elseif ( $_GET["filter"] === "2" ) {
+    $events = getEventsLast2Days($conn);
   }
 }
 
@@ -57,6 +59,26 @@ function getNearBy($conn, $lat, $lng, $distance) {
                   AND lng_d BETWEEN $lng - $actual_distance AND $lng + $actual_distance
           HAVING distance <= $distance
           ORDER BY distance";
+  $result = $conn->query($sql);
+  if ($result->num_rows > 0) {
+    // output data of each row
+    while($row = $result->fetch_assoc()) {
+      $events[] = $row;
+    }
+  }
+  return $events;
+}
+
+function getEventsLast2Days($conn) {
+  $events = [];
+  $sql = "SELECT id, user_uid, user_name, user_photo_url,
+          title, event_photo_url, event_type_index, province_index,
+          region_index, lat, lng, address,
+          created_at_long, created_at, updated_at
+          FROM events
+          WHERE created_at BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW()
+          ORDER BY id DESC 
+          LIMIT 1000";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
     // output data of each row
