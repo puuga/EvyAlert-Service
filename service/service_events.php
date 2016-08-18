@@ -32,7 +32,7 @@ function getAll($conn) {
           title, event_photo_url, event_type_index, province_index,
           region_index, lat, lng, address,
           created_at_long, created_at, updated_at
-          FROM events ORDER BY id DESC";
+          FROM events WHERE soft_delete=0 ORDER BY id DESC";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
     // output data of each row
@@ -54,7 +54,7 @@ function getNearBy($conn, $lat, $lng, $distance) {
               DISTANCE_KM(lat_d, lng_d, $lat, $lng) distance
           FROM
               events
-          WHERE
+          WHERE soft_delete=0 AND
               lat_d BETWEEN $lat - $actual_distance AND $lat + $actual_distance
                   AND lng_d BETWEEN $lng - $actual_distance AND $lng + $actual_distance
           HAVING distance <= $distance
@@ -76,8 +76,9 @@ function getEventsLast2Days($conn) {
           region_index, lat, lng, address,
           created_at_long, created_at, updated_at
           FROM events
-          WHERE created_at BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW()
-          ORDER BY id DESC 
+          WHERE soft_delete=0 AND
+          created_at BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW()
+          ORDER BY id DESC
           LIMIT 1000";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
