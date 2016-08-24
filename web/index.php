@@ -50,8 +50,22 @@
       #map {
         height: 100%;
       }
+      #list {
+        height: 100%;
+      }
       .container-fluid, .row {
         height: 100%;
+      }
+      #listView {
+        height: 100%;
+        overflow-y: scroll;
+      }
+      .img-profile {
+        max-width: 50px;
+        max-height: 50px;
+      }
+      .user-name {
+        display: inline-block;
       }
     </style>
   </head>
@@ -64,7 +78,21 @@
         <div id="map" class="col-sm-8"></div>
 
         <div id="list" class="col-sm-4">
-          <h2>Filter</h2>
+
+          <div class="form-group col-md-12">
+            <label for="selectOption" class="col-md-2 control-label">Filter</label>
+            <div class="col-md-10">
+              <select id="selectOption" class="form-control">
+                <option value="0">Near by 20 Km</option>
+                <option value="1">Near by 50 Km</option>
+                <option value="2">Last 2 Days</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="listView" class="col-md-12">
+          </div>
+
         </div>
 
       </div>
@@ -90,7 +118,12 @@
     </nav>
 
     <script>
+      var pos = {
+        lat: 13.6256047,
+        lng: 100.9986654
+      };
       var map;
+      var markers = [];
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 13.6256047, lng: 100.9986654},
@@ -104,7 +137,7 @@
         // Try HTML5 geolocation.
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(function(position) {
-            var pos = {
+            pos = {
               lat: position.coords.latitude,
               lng: position.coords.longitude
             };
@@ -123,16 +156,132 @@
             console.log(pos);
             map.setZoom(12);
             map.setCenter(pos);
+            loadNearby("0");
           }, function() {
             console.log("Error: The Geolocation service failed.");
           });
         }
       }
+
+      function makeMarkersOnMap(events) {
+        clearMarkers();
+        for (var i = 0; i < events.length; i++) {
+          var eventData = events[i];
+
+          var marker = new google.maps.Marker({
+            map: map,
+            title: eventData.title,
+            animation: google.maps.Animation.DROP,
+            position: {lat: parseFloat(eventData.lat), lng: parseFloat(eventData.lng)}
+          });
+          var infoWindow = new google.maps.InfoWindow({
+            content: eventData.title
+          });
+          var contentString = eventData.title;
+
+          google.maps.event.addListener(marker,'click', (function(marker,contentString,infoWindow) {
+            return function() {
+              infoWindow.setContent(contentString);
+              infoWindow.open(map,marker);
+            };
+          })(marker,contentString,infoWindow));
+          markers.push(marker);
+        }
+      }
+
+      function clearMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+          var marker = markers[i];
+          marker.setMap(null);
+        }
+        markers = [];
+      }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrgczUw139gbbLb4fCg0NBbn5bsdCS2o4&callback=initMap&signed_in=true"
     async defer></script>
     <script>
+      $("#selectOption").change(function() {
+        var val = $(this).val();
+        loadEvents(val);
+      });
 
+      function loadEvents(option) {
+        switch (option) {
+          case "0":
+            console.log("loadNearby20");
+            loadNearby(0);
+            break;
+          case "1":
+            console.log("loadNearby50");
+            loadNearby(1);
+            break;
+          case "2":
+            console.log("loadLast2Day");
+            loadNearby(2);
+            break;
+          default:
+
+        }
+      }
+
+      function loadNearby(option) {
+        var url = "https://evyalert.roomlinksaas.com/evyalert-service/service_events.php?";
+        url += "filter=" + option;
+        url += "&lat=" + pos.lat;
+        url += "&lng=" + pos.lng;
+        var jqxhr = $.ajax(url)
+        .done(function(json) {
+          console.log(json);
+          bindJsonToList(json);
+          makeMarkersOnMap(json);
+        })
+        .fail(function() {
+          console.log("error");
+        })
+      }
+
+      function loadEventsLast2Days(option) {
+        var url = "https://evyalert.roomlinksaas.com/evyalert-service/service_events.php?";
+        url += "filter=" + option;
+        var jqxhr = $.ajax(url)
+        .done(function(json) {
+          console.log(json);
+          bindJsonToList(json);
+          makeMarkersOnMap(json);
+        })
+        .fail(function() {
+          console.log("error");
+        })
+      }
+
+      function bindJsonToList(json) {
+        var output = "";
+        for (var i = 0; i < json.length; i++) {
+          var eventData = json[i];
+          output += makeViewHolder(eventData);
+        }
+        $("#listView").html(output);
+      }
+
+      function makeViewHolder(eventData) {
+        var holder = "<div class=\"panel panel-default\">";
+        holder += "<div class=\"panel-body\">";
+        // holder += "<span>";
+        holder += "<img src=\""+eventData.user_photo_url+"\" class=\"img-profile img-responsive img-circle\">";
+        // holder += "</span>";
+        holder += "<span class=\"user-name\">";
+        holder += " " + eventData.user_name + "";
+        holder += "</span>";
+        holder += "</div>";
+        holder += "<div class=\"panel-body\">";
+        holder += eventData.title + "<br/>";
+        if (eventData.event_photo_url !== "") {
+          holder += "<img src=\""+eventData.user_photo_url+"\" class=\"img-responsive\">";
+        }
+        holder += "</div>";
+        holder += "</div>";
+        return holder;
+      }
     </script>
   </body>
 </html>
