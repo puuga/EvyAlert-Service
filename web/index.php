@@ -11,6 +11,16 @@
     integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
     crossorigin="anonymous"></script>
 
+    <!-- firebase -->
+    <script src="https://www.gstatic.com/firebasejs/3.3.0/firebase-app.js"></script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyCE47MZ_hqzjniiDviTFDozAE7Qnvb5owY"
+      };
+      firebase.initializeApp(config);
+    </script>
+
     <!-- Bootstrap -->
     <!-- Material Design fonts -->
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
@@ -64,8 +74,9 @@
         max-width: 50px;
         max-height: 50px;
       }
-      .user-name {
-        display: inline-block;
+      .panel {
+        cursor: pointer;
+        cursor: hand;
       }
     </style>
   </head>
@@ -118,12 +129,19 @@
     </nav>
 
     <script>
+      var eventIcons = [
+        "img/ic_accident_red_600_36dp.png",
+        "img/ic_natural_disaster_amber_800_36dp.png",
+        "img/ic_other_amber_800_36dp.png",
+        "img/ic_traffic_jam_orange_800_36dp.png"
+      ];
       var pos = {
         lat: 13.6256047,
         lng: 100.9986654
       };
       var map;
       var markers = [];
+      // var infoWindows = [];
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 13.6256047, lng: 100.9986654},
@@ -172,6 +190,7 @@
             map: map,
             title: eventData.title,
             animation: google.maps.Animation.DROP,
+            icon: eventIcons[parseInt(eventData.event_type_index)],
             position: {lat: parseFloat(eventData.lat), lng: parseFloat(eventData.lng)}
           });
           var infoWindow = new google.maps.InfoWindow({
@@ -186,6 +205,7 @@
             };
           })(marker,contentString,infoWindow));
           markers.push(marker);
+          // infoWindows.push(infoWindow);
         }
       }
 
@@ -195,6 +215,7 @@
           marker.setMap(null);
         }
         markers = [];
+        // infoWindows = [];
       }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrgczUw139gbbLb4fCg0NBbn5bsdCS2o4&callback=initMap&signed_in=true"
@@ -258,29 +279,42 @@
         var output = "";
         for (var i = 0; i < json.length; i++) {
           var eventData = json[i];
-          output += makeViewHolder(eventData);
+          output += makeViewHolder(eventData, i);
         }
         $("#listView").html(output);
       }
 
-      function makeViewHolder(eventData) {
-        var holder = "<div class=\"panel panel-default\">";
+      function makeViewHolder(eventData, index) {
+        var holder = "<div class=\"panel panel-default\" onclick=\"javascript:onHolderClick("+index+")\">";
+        holder += "<div class=\"panel-heading\">"; // panel-heading
+          holder += "<div class=\"row\">";
+          holder += "<div class=\"col-sm-3\">"; // div profile photo
+          holder += "<img src=\""+eventData.user_photo_url+"\" class=\"img-profile img-responsive img-circle\">";
+          holder += "</div>"; // end div profile photo
+          holder += "<div class=\"col-sm-7\">"; // div profile info
+          holder += eventData.user_name + "<br/>";
+          holder += eventData.created_at + "<br/>";
+          holder += "</div>";// end div profile info
+          holder += "<div class=\"col-sm-2\">"; // div event info
+          holder += "<img src=\""+eventIcons[parseInt(eventData.event_type_index)]+"\" class=\"img-profile img-responsive img-circle\">";
+          holder += "</div>";// end div event info
+          holder += "</div>";
+        holder += "</div>";// end panel-heading
         holder += "<div class=\"panel-body\">";
-        // holder += "<span>";
-        holder += "<img src=\""+eventData.user_photo_url+"\" class=\"img-profile img-responsive img-circle\">";
-        // holder += "</span>";
-        holder += "<span class=\"user-name\">";
-        holder += " " + eventData.user_name + "";
-        holder += "</span>";
-        holder += "</div>";
-        holder += "<div class=\"panel-body\">";
-        holder += eventData.title + "<br/>";
-        if (eventData.event_photo_url !== "") {
-          holder += "<img src=\""+eventData.user_photo_url+"\" class=\"img-responsive\">";
-        }
+          holder += eventData.title + "<br/>";
+          if (eventData.event_photo_url !== "") {
+            holder += "<img src=\""+eventData.event_photo_url+"\" class=\"img-responsive\">";
+          }
         holder += "</div>";
         holder += "</div>";
         return holder;
+      }
+
+      function onHolderClick(index) {
+        var marker = markers[index];
+        google.maps.event.trigger(marker, 'click');
+
+        map.setCenter(marker.position);
       }
     </script>
   </body>
