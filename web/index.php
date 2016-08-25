@@ -55,7 +55,7 @@
         padding: 0;
       }
       body {
-        padding-top: 50px;
+        padding-top: 60px;
       }
       #map {
         height: 100%;
@@ -89,6 +89,17 @@
         <div id="map" class="col-sm-8"></div>
 
         <div id="list" class="col-sm-4">
+          <br/>
+          <div class="col-md-6">
+            <p class="text-center">
+              <a href="https://play.google.com/store/apps/details?id=com.appspace.evyalert">
+                <img src="img/get_it_on_google_play.svg"/>
+              </a>
+            </p>
+          </div>
+          <div class="col-md-6">
+              <!-- ios app store link -->
+          </div>
 
           <div class="form-group col-md-12">
             <label for="selectOption" class="col-md-2 control-label">Filter</label>
@@ -125,6 +136,13 @@
           </button>
           <a class="navbar-brand" href="#">EvyAlert</a>
         </div>
+
+        <!-- <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+            <li>
+            </li>
+          </ul>
+        </div> -->
       </div>
     </nav>
 
