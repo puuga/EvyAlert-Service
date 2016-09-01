@@ -18,6 +18,9 @@ if ( $_SERVER["REQUEST_METHOD"] == "GET" ) {
     $events = getNearBy($conn, $lat, $lng, 50);
   } elseif ( $_GET["filter"] === "2" ) {
     $events = getEventsLast2Days($conn);
+  } elseif ( $_GET["filter"] === "3" ) {
+    $province_id = $_GET["province_id"];
+    $events = getEventsByPrivinceId($conn, $province_id);
   }
 }
 
@@ -32,7 +35,7 @@ function getAll($conn) {
           title, event_photo_url, event_type_index, province_index,
           region_index, lat, lng, address,
           created_at_long, created_at, updated_at
-          FROM events WHERE soft_delete=0 ORDER BY id DESC";
+          FROM events WHERE soft_delete=0 ORDER BY id DESC LIMIT 1000";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
     // output data of each row
@@ -58,7 +61,7 @@ function getNearBy($conn, $lat, $lng, $distance) {
               lat_d BETWEEN $lat - $actual_distance AND $lat + $actual_distance
                   AND lng_d BETWEEN $lng - $actual_distance AND $lng + $actual_distance
           HAVING distance <= $distance
-          ORDER BY distance";
+          ORDER BY distance LIMIT 1000";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
     // output data of each row
@@ -80,6 +83,24 @@ function getEventsLast2Days($conn) {
           created_at BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW()
           ORDER BY id DESC
           LIMIT 1000";
+  $result = $conn->query($sql);
+  if ($result->num_rows > 0) {
+    // output data of each row
+    while($row = $result->fetch_assoc()) {
+      $events[] = $row;
+    }
+  }
+  return $events;
+}
+
+function getEventsByPrivinceId($conn, $province_id) {
+  $events = [];
+  $sql = "SELECT id, user_uid, user_name, user_photo_url,
+          title, event_photo_url, event_type_index, province_index,
+          region_index, lat, lng, address,
+          created_at_long, created_at, updated_at
+          FROM events WHERE soft_delete=0 AND province_index=$province_id
+          ORDER BY id DESC LIMIT 1000";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
     // output data of each row
