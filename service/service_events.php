@@ -9,7 +9,7 @@ $events = [];
 if ( $_SERVER["REQUEST_METHOD"] == "GET" ) {
   $lat = isset($_GET["lat"]) ? $_GET["lat"] : 0.0 ;
   $lng = isset($_GET["lng"]) ? $_GET["lng"] : 0.0 ;
-  $event_filter = isset($_GET["events"]) ? $_GET["events"] : "0,1,2,3";
+  $event_filter = isset($_GET["event_filter"]) ? $_GET["event_filter"] : "0,1,2,3";
 
   if ( !isset($_GET["filter"]) ) {
     $events = getAll($conn, $event_filter);
