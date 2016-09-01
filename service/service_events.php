@@ -9,18 +9,19 @@ $events = [];
 if ( $_SERVER["REQUEST_METHOD"] == "GET" ) {
   $lat = isset($_GET["lat"]) ? $_GET["lat"] : 0.0 ;
   $lng = isset($_GET["lng"]) ? $_GET["lng"] : 0.0 ;
+  $event_filter = isset($_GET["events"]) ? $_GET["events"] : "0,1,2,3";
 
   if ( !isset($_GET["filter"]) ) {
-    $events = getAll($conn);
+    $events = getAll($conn, $event_filter);
   } elseif ( $_GET["filter"] === "0" ) {
-    $events = getNearBy($conn, $lat, $lng, 20);
+    $events = getNearBy($conn, $lat, $lng, 20, $event_filter);
   } elseif ( $_GET["filter"] === "1" ) {
-    $events = getNearBy($conn, $lat, $lng, 50);
+    $events = getNearBy($conn, $lat, $lng, 50, $event_filter);
   } elseif ( $_GET["filter"] === "2" ) {
-    $events = getEventsLast2Days($conn);
+    $events = getEventsLast2Days($conn, $event_filter);
   } elseif ( $_GET["filter"] === "3" ) {
     $province_id = $_GET["province_id"];
-    $events = getEventsByPrivinceId($conn, $province_id);
+    $events = getEventsByPrivinceId($conn, $province_id, $event_filter);
   }
 }
 
@@ -29,13 +30,15 @@ echo json_encode($events);
 $conn->close();
 // $con->close();
 
-function getAll($conn) {
+function getAll($conn, $event_filter) {
   $events = [];
   $sql = "SELECT id, user_uid, user_name, user_photo_url,
           title, event_photo_url, event_type_index, province_index,
           region_index, lat, lng, address,
           created_at_long, created_at, updated_at
-          FROM events WHERE soft_delete=0 ORDER BY id DESC LIMIT 1000";
+          FROM events
+          WHERE soft_delete=0 AND event_type_index IN ($event_filter)
+          ORDER BY id DESC LIMIT 1000";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
     // output data of each row
@@ -46,7 +49,7 @@ function getAll($conn) {
   return $events;
 }
 
-function getNearBy($conn, $lat, $lng, $distance) {
+function getNearBy($conn, $lat, $lng, $distance, $event_filter) {
   $actual_distance = $distance === 20 ? 0.3 : 0.5 ;
   $events = [];
   $sql = "SELECT
@@ -57,7 +60,7 @@ function getNearBy($conn, $lat, $lng, $distance) {
               DISTANCE_KM(lat_d, lng_d, $lat, $lng) distance
           FROM
               events
-          WHERE soft_delete=0 AND
+          WHERE soft_delete=0 AND event_type_index IN ($event_filter) AND
               lat_d BETWEEN $lat - $actual_distance AND $lat + $actual_distance
                   AND lng_d BETWEEN $lng - $actual_distance AND $lng + $actual_distance
           HAVING distance <= $distance
@@ -72,14 +75,14 @@ function getNearBy($conn, $lat, $lng, $distance) {
   return $events;
 }
 
-function getEventsLast2Days($conn) {
+function getEventsLast2Days($conn, $event_filter) {
   $events = [];
   $sql = "SELECT id, user_uid, user_name, user_photo_url,
           title, event_photo_url, event_type_index, province_index,
           region_index, lat, lng, address,
           created_at_long, created_at, updated_at
           FROM events
-          WHERE soft_delete=0 AND
+          WHERE soft_delete=0 AND event_type_index IN ($event_filter) AND
           created_at BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW()
           ORDER BY id DESC
           LIMIT 1000";
@@ -93,13 +96,15 @@ function getEventsLast2Days($conn) {
   return $events;
 }
 
-function getEventsByPrivinceId($conn, $province_id) {
+function getEventsByPrivinceId($conn, $province_id, $event_filter) {
   $events = [];
   $sql = "SELECT id, user_uid, user_name, user_photo_url,
           title, event_photo_url, event_type_index, province_index,
           region_index, lat, lng, address,
           created_at_long, created_at, updated_at
-          FROM events WHERE soft_delete=0 AND province_index=$province_id
+          FROM events
+          WHERE soft_delete=0 AND event_type_index IN ($event_filter)
+          AND province_index=$province_id
           ORDER BY id DESC LIMIT 1000";
   $result = $conn->query($sql);
   if ($result->num_rows > 0) {
