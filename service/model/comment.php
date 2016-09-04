@@ -45,4 +45,30 @@ function getCommentById($conn, $id) {
   }
   return $comments;
 }
+
+function createComment($conn, $post_data) {
+  $sql = "INSERT INTO events (
+            event_id,
+            comment,
+            user_uid,
+            user_name,
+            user_photo_url,
+            created_at_long, created_at, updated_at )
+          VALUES (
+            $post_data->event_id,
+            '$post_data->comment',
+            '$post_data->user_uid',
+            '$post_data->user_name',
+            '$post_data->user_photo_url',
+            $post_data->created_at_long, NOW(), NOW()
+          ) ";
+  if ($conn->query($sql) === TRUE) {
+    $last_id = $conn->insert_id;
+    return $last_id;
+  } else {
+    echo $conn->error;
+    die();
+  }
+
+}
 ?>
