@@ -11,7 +11,7 @@ if ( $_SERVER["REQUEST_METHOD"] == "GET" ) {
 
   if ( !isset($_GET["event_id"]) ) {
     $comments = getAll($conn, $event_filter);
-  } elseif ( $_GET["filter"] === "0" ) {
+  }
     $comments = getCommentsByEventId($conn, $_GET["event_id"]);
   }
 }
