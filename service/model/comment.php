@@ -1,5 +1,5 @@
 <?php
-function getAll($conn, $event_filter) {
+function getComments($conn) {
   $comments = [];
   $sql = "SELECT *
           FROM comments
@@ -32,7 +32,6 @@ function getCommentsByEventId($conn, $event_id) {
 }
 
 function getCommentById($conn, $id) {
-  $comments = [];
   $sql = "SELECT *
           FROM comments
           WHERE id=$id";
@@ -40,10 +39,10 @@ function getCommentById($conn, $id) {
   if ($result->num_rows > 0) {
     // output data of each row
     while($row = $result->fetch_assoc()) {
-      $comments[] = $row;
+      $comment = $row;
     }
   }
-  return $comments;
+  return $comment;
 }
 
 function createComment($conn, $post_data) {

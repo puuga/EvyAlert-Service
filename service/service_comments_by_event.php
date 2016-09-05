@@ -10,8 +10,8 @@ $comments = [];
 if ( $_SERVER["REQUEST_METHOD"] == "GET" ) {
 
   if ( !isset($_GET["event_id"]) ) {
-    $comments = getAll($conn, $event_filter);
-  }
+    $comments = getComments($conn);
+  } else {
     $comments = getCommentsByEventId($conn, $_GET["event_id"]);
   }
 }
