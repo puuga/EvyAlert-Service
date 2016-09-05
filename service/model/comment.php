@@ -46,7 +46,7 @@ function getCommentById($conn, $id) {
 }
 
 function createComment($conn, $post_data) {
-  $sql = "INSERT INTO events (
+  $sql = "INSERT INTO comments (
             event_id,
             comment,
             user_uid,
