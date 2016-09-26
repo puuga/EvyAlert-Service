@@ -78,6 +78,7 @@ function getNearBy($conn, $lat, $lng, $distance, $event_filter) {
           WHERE soft_delete=0 AND event_type_index IN ($event_filter) AND
               lat_d BETWEEN $lat - $actual_distance AND $lat + $actual_distance
                   AND lng_d BETWEEN $lng - $actual_distance AND $lng + $actual_distance
+                  AND ( created_at BETWEEN (NOW() - INTERVAL 2 DAY) AND NOW() )
           HAVING distance <= $distance
           ORDER BY distance LIMIT 1000";
   $result = $conn->query($sql);
@@ -99,7 +100,7 @@ function getEventsLast2Days($conn, $event_filter) {
           count_comments(id) number_of_comments
           FROM events
           WHERE soft_delete=0 AND event_type_index IN ($event_filter) AND
-          created_at BETWEEN (NOW() - INTERVAL 7 DAY) AND NOW()
+          created_at BETWEEN (NOW() - INTERVAL 2 DAY) AND NOW()
           ORDER BY id DESC
           LIMIT 1000";
   $result = $conn->query($sql);
